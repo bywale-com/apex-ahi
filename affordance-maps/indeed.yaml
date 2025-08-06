@@ -1,0 +1,156 @@
+platform: Indeed.com
+last_updated: 2025-08-05
+affordances:
+  - category: UI
+    component: Job Search Page
+    afforded_action: Search for jobs using keywords and filters (location, date, etc.)
+    discoverability: Obvious
+    surface_accessibility: UI
+    dependencies: None (accessible without login)
+    automation_resistance: Low
+    notes: "Results are returned via static HTML with structured job card data (embedded JSON like `_initialData`):contentReference[oaicite:0]{index=0}. The DOM is stable and easily parsed; tools like Selenium or Puppeteer commonly handle it. Heavy scraping can trigger Cloudflare anti-bot checks:contentReference[oaicite:1]{index=1}, so moderate request rates or proxies are used."
+
+  - category: UI
+    component: Job Details Page
+    afforded_action: View detailed job description and company information
+    discoverability: Obvious
+    surface_accessibility: UI
+    dependencies: None (login not required to view)
+    automation_resistance: Low
+    notes: "Each job listing has a dedicated page with full description. HTML includes structured data for parsing. For automation, job details can be fetched via a hidden endpoint (e.g. `viewjob?viewtype=embedded&jk=<ID>`) that returns JSON in page content:contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}. Parsing is straightforward, but rapid access may require rotating IPs to avoid blocks."
+
+  - category: UI
+    component: Save Job Button
+    afforded_action: Save or bookmark a job listing for later
+    discoverability: Obvious
+    surface_accessibility: UI
+    dependencies: Logged-in user account required
+    automation_resistance: Low
+    notes: "Visible as a heart or “Save” icon on job cards and pages. Clicking it triggers an XHR call to save the job to the user’s profile (requires authentication). Easily automated via DOM interaction; unlikely to trigger anti-bot measures unless done in bulk. Saved jobs can be reviewed in the account’s Saved Jobs list and unsaved similarly."
+
+  - category: UI
+    component: Apply Button (“Easy Apply” on Indeed)
+    afforded_action: Submit job application through Indeed’s platform using your resume/profile
+    discoverability: Obvious
+    surface_accessibility: UI
+    dependencies: Logged-in user; verified account with resume on file
+    automation_resistance: Medium
+    notes: "Allows applying directly on Indeed for participating jobs. Opens a multi-step form where resume and answers to employer’s screener questions are submitted. Form submission often requires JavaScript-enabled automation (dynamic fields). Repeated or scripted applications may trigger bot checks or CAPTCHAs:contentReference[oaicite:4]{index=4}. Some users report intermittent CAPTCHA challenges during applications, likely when automated or if unusual patterns are detected. Each application is tracked in the user’s ‘My Jobs’ with status updates if the employer uses Indeed’s system."
+
+  - category: UI
+    component: External Apply Redirect
+    afforded_action: Navigate to an external site to apply
+    discoverability: Obvious
+    surface_accessibility: UI
+    dependencies: None (though login may be prompted to keep track)
+    automation_resistance: Low
+    notes: "For jobs not using Indeed’s apply, the “Apply on Company Site” button opens the employer’s website or ATS. Indeed logs the click but the application process happens off-site. Automating this means handling a new site (outside Indeed’s scope). Indeed itself doesn’t block this action. No data is sent back to Indeed except a flag that the user clicked through."
+
+  - category: UI
+    component: Account Registration
+    afforded_action: Create a new Indeed account (sign-up)
+    discoverability: Obvious
+    surface_accessibility: UI
+    dependencies: Email (verification required); possibly CAPTCHA for bot prevention
+    automation_resistance: Medium
+    notes: "New users can sign up with an email (or third-party login). The flow is straightforward HTML form submission, but to prevent spam Indeed may employ reCAPTCHA or email verification. Automation requires handling email verification links and potential CAPTCHA solving. Rate-limits likely apply to creating multiple accounts. Bulk sign-ups or fake accounts risk being flagged or banned under Indeed’s anti-bot and anti-spam policies."
+
+  - category: UI
+    component: Account Login
+    afforded_action: Authenticate and access a user account
+    discoverability: Obvious
+    surface_accessibility: UI
+    dependencies: Valid credentials (email/password); cookies enabled
+    automation_resistance: Low
+    notes: "Standard email/password login form. Supports “remember me” sessions via cookies. Generally, a single successful login from a typical browser session is not challenged. However, unusual login patterns (many logins from one IP or automated timing) could trigger security measures. Once logged in, a session cookie grants access to profile, applications, etc. Automations store and reuse this cookie to stay authenticated."
+
+  - category: UI
+    component: Profile & Resume Manager
+    afforded_action: Upload or update resume; edit profile details
+    discoverability: Obvious
+    surface_accessibility: UI
+    dependencies: Logged-in user
+    automation_resistance: Medium
+    notes: "Users can upload a resume file or use Indeed’s resume builder. The UI provides an upload form (accepts PDF, DOCX, etc.), which can be automated by simulating file selection. After upload, Indeed parses the resume to fill profile fields (experience, education) – an implicit process that might require manual review. No official API exists for resume upload; the site uses internal endpoints to handle the file. Automating frequent resume changes could appear suspicious. Rate limits on uploads are unclear, but excessive attempts might trigger account review."
+
+  - category: UI
+    component: Job Alerts Subscription
+    afforded_action: Create or manage email alerts for new jobs matching a search
+    discoverability: Discoverable
+    surface_accessibility: UI
+    dependencies: Email address; account recommended for managing multiple alerts
+    automation_resistance: Low
+    notes: "After performing a search, users are prompted to “get new jobs by email.” This creates an alert that emails new listings. Logged-in users can manage alerts (create or delete) in their settings. One can automate filling the alert signup form or toggling alerts via the settings page. There’s minimal anti-bot protection on this feature, aside from confirmation emails for non-logged-in alert creation. However, Indeed may limit the number of active alerts per account to prevent abuse."
+
+  - category: UI
+    component: Messaging (Indeed Inbox)
+    afforded_action: Communicate with employers through Indeed’s messaging system
+    discoverability: Discoverable
+    surface_accessibility: UI
+    dependencies: Logged-in user; must have applications or contacts via Indeed
+    automation_resistance: Medium
+    notes: "Indeed provides an inbox for candidates to receive messages from employers or send follow-ups if the employer invites it. Notifications are emailed, but replies can be sent on the site. Automating reading messages (scraping inbox) is low resistance (just HTML content). Automating sending messages is possible via form submission, but sending unsolicited or repetitive messages could trigger monitoring. All messages go through Indeed’s platform (no public API), and misuse might lead to account flags. Generally used after an application or employer outreach, so not all users have this interaction."
+
+  - category: UI
+    component: Application Tracking (“My Jobs” dashboard)
+    afforded_action: View applied jobs and their status updates
+    discoverability: Discoverable
+    surface_accessibility: UI
+    dependencies: Logged-in user
+    automation_resistance: Low
+    notes: "Indeed’s “My Jobs” section lists jobs the user applied to (via Indeed or marked as applied externally) and saved jobs. It shows statuses like “Employer viewed your application” or “Not selected” for Indeed Apply jobs. This page can be scraped to track outcomes. Low automation resistance, as it’s a simple authenticated page load. No known anti-scraping on this user-specific page beyond standard login requirement. Data can be exported by automation for personal tracking. External applications usually show no detailed status (just saved as a record)."
+
+  - category: Implicit
+    component: Session Persistence
+    afforded_action: Maintain login session across visits
+    discoverability: Discoverable
+    surface_accessibility: UI
+    dependencies: Cookies (session and possibly persistent cookies); localStorage for preferences
+    automation_resistance: Medium
+    notes: "Indeed keeps users signed in via session cookies. By default, sessions remain active for a significant duration (roughly a day of inactivity, unless “remember me” extends it). Automation can preserve cookies to avoid re-login. If cookies or local storage are cleared or expire, the user must log in again. No direct user interface for this beyond the “stay signed in” option; it’s handled implicitly by browser storage. Bot detection may invalidate sessions that exhibit non-human patterns (e.g., rapid page loads), requiring re-authentication."
+
+  - category: Implicit
+    component: Anti-Scraping Gatekeeper
+    afforded_action: Challenge or block suspected automated traffic
+    discoverability: Hidden (only encountered upon triggering)
+    surface_accessibility: UI
+    dependencies: N/A (triggered by usage patterns; relies on browser executing JS)
+    automation_resistance: High
+    notes: "Indeed employs anti-bot measures including Cloudflare’s protections and in-house systems:contentReference[oaicite:5]{index=5}. High-frequency requests or non-browser-like behavior can lead to an interstitial check (“Verifying you are human”) or a reCAPTCHA challenge:contentReference[oaicite:6]{index=6}. This usually manifests as a temporary block page requiring user interaction. Automation systems must evade this via browser simulation, delays, or captcha-solving services. The defenses also track things like consistent browser headers and behavior to distinguish bots:contentReference[oaicite:7]{index=7}. Overcoming this is essential for large-scale scraping but significantly increases complexity."
+
+  - category: False
+    component: “Cover Letter” Free-Text Field in Applications
+    afforded_action: Include an optional message with your job application
+    discoverability: Obvious (present during Indeed Apply flow)
+    surface_accessibility: UI
+    dependencies: Must initiate an application where the field is provided
+    automation_resistance: High
+    notes: "This text box lets candidates add a note or cover letter when applying on Indeed. However, many employers pay little attention to these messages coming through Indeed. Reports suggest Indeed-transmitted cover letters may appear as a small snippet or get overlooked:contentReference[oaicite:8]{index=8}. From an automation perspective, auto-generating personalized text for each application is possible, but doing so at scale risks diminishing quality and could be flagged if identical messages repeat. Ethically, sending generic mass-produced messages can hurt candidate credibility, hence this affordance often has limited practical impact."
+
+  - category: Latent
+    component: RSS Feed for Job Searches
+    afforded_action: Retrieve new job postings via RSS for a given search query
+    discoverability: Hidden (undocumented feature)
+    surface_accessibility: API
+    dependencies: None (works without login; uses public feed URL)
+    automation_resistance: Low
+    notes: "Indeed offers an unadvertised RSS feed output for any job search. By using the feed URL (e.g. replacing `www` with `rss.indeed.com/rss?q=<terms>&l=<location>`), one can receive listings in XML format:contentReference[oaicite:9]{index=9}. This allows programmatic monitoring of new jobs without HTML scraping. It’s not officially documented and could potentially be removed, but as of 2025 it still works:contentReference[oaicite:10]{index=10}. The feed provides titles, company, location, and a link to the Indeed job page. Because it’s read-only and light, it faces minimal anti-bot scrutiny; still, excessive querying of the RSS endpoint could be noticed if abused."
+
+  - category: Latent
+    component: Undocumented Job Apply API
+    afforded_action: Submit applications programmatically (bypassing UI)
+    discoverability: Hidden (requires reverse-engineering)
+    surface_accessibility: API
+    dependencies: Logged-in session; job-specific token or form data
+    automation_resistance: High
+    notes: "Indeed’s front-end communicates with internal endpoints when submitting an application (for example, to upload resumes or send form answers). Advanced users can capture these requests (often JSON payloads or form posts) and attempt to call them directly. This is not officially supported – no public documentation exists. Implementing this requires mimicking all necessary headers, tokens (CSRF, etc.), and timing, which is complex. Even if achieved, such direct automation might trigger security alerts. Indeed could flag or ban accounts using unpublished APIs for applications, as it violates terms. Use of this latent affordance is risky and brittle, likely to break if Indeed changes their internal API."
+
+  - category: Latent
+    component: Resume Upload Endpoint (Undocumented)
+    afforded_action: Programmatically upload or update resume via HTTP call
+    discoverability: Hidden
+    surface_accessibility: API
+    dependencies: Authenticated session; proper form data format
+    automation_resistance: High
+    notes: "The resume upload UI ultimately calls an internal endpoint (via AJAX) to send the file to Indeed’s server. In theory, an automation script could directly invoke this file-upload API with the right cookies and POST data. However, Indeed does not provide a public API for this; it must be reverse-engineered from network calls. This approach is fragile — any change in endpoint or required parameters will break it. Moreover, making such calls outside the normal web flow could be detected. Frequent or large automated resume uploads would likely draw attention, risking IP or account bans. This affordance exists at a technical level but is not meant for external use."
+
