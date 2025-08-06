@@ -1,0 +1,147 @@
+platform: Kernel (onkernel.com)
+last_updated: 2025-08-05
+affordances:
+
+  - category: API
+    component: Browser API (`/browsers`)
+    afforded_action: Launch cloud-hosted Chromium browser session
+    discoverability: Obvious
+    surface_accessibility: API
+    dependencies: Authenticated API key or OAuth token
+    automation_resistance: Low
+    notes: Returns `cdp_ws_url`, `live_view_url`, and `browser_id`; supports headless, stealth, and persistence flags; ~300ms cold launch time
+
+  - category: API
+    component: Invocation API (`/apps/invoke`)
+    afforded_action: Trigger agent function in deployed Kernel app
+    discoverability: Obvious
+    surface_accessibility: API
+    dependencies: App must be deployed with named actions
+    automation_resistance: Low
+    notes: Accepts params (e.g., user input, prompts); returns streamed logs, errors, or success values
+
+  - category: API
+    component: Persistence ID system
+    afforded_action: Maintain browser state (cookies, localStorage) across invocations
+    discoverability: Discoverable
+    surface_accessibility: API
+    dependencies: Browser must be launched with `persistence_id`
+    automation_resistance: Low
+    notes: Snapshots VM and browser state; used to keep sessions logged in; rehydrates from exact state when re-invoked
+
+  - category: API
+    component: CDP WebSocket (`cdp_ws_url`)
+    afforded_action: Remote programmatic control using Playwright, Puppeteer, or CDP clients
+    discoverability: Discoverable
+    surface_accessibility: CDP
+    dependencies: Browser session must be active; CDP port returned at launch
+    automation_resistance: Low
+    notes: Compatible with Chromium-based automation libraries; attaches to Kernel’s cloud-hosted browser
+
+  - category: API
+    component: Replay Recording API
+    afforded_action: Record browser session as video
+    discoverability: Discoverable
+    surface_accessibility: API
+    dependencies: Headful mode only; `browser_id` required
+    automation_resistance: Low
+    notes: Use `start` and `stop` endpoints to control segments; replays available via download URL for audit/debug
+
+  - category: CLI
+    component: `kernel browsers` command set
+    afforded_action: Create, list, view, and delete browser sessions from terminal
+    discoverability: Obvious
+    surface_accessibility: CLI
+    dependencies: Login via `kernel login` or API key
+    automation_resistance: Low
+    notes: Used in CI/CD scripts; e.g., `kernel browsers create --headless --stealth`
+
+  - category: CLI
+    component: `kernel deploy` command
+    afforded_action: Deploy local codebase as a cloud agent app
+    discoverability: Obvious
+    surface_accessibility: CLI
+    dependencies: Valid Kernel project (with manifest); CLI login
+    automation_resistance: Low
+    notes: Bundles code and uploads to Kernel’s infra; produces `app_id` for invocation
+
+  - category: MCP
+    component: MCP Tool: `create_browser`
+    afforded_action: Launch browser from within AI assistant agent session
+    discoverability: Requires Expertise
+    surface_accessibility: MCP
+    dependencies: MCP server integration; auth context
+    automation_resistance: Low
+    notes: Used by AI models to request real-time browsers during conversations; returns live view and control handles
+
+  - category: MCP
+    component: MCP Tool: `invoke_action`
+    afforded_action: Trigger specific action in a deployed agent app
+    discoverability: Requires Expertise
+    surface_accessibility: MCP
+    dependencies: Deployed app ID and named action
+    automation_resistance: Low
+    notes: Equivalent to `POST /apps/invoke`; allows intelligent agents to call arbitrary functions
+
+  - category: MCP
+    component: MCP Tool: `deploy_app`
+    afforded_action: Upload and register app source code via AI instruction
+    discoverability: Requires Expertise
+    surface_accessibility: MCP
+    dependencies: Requires a zipped app bundle or source repo reference
+    automation_resistance: Medium
+    notes: AI agents can deploy new automation flows without human intervention; powerful for autonomous development loops
+
+  - category: Implicit
+    component: Stealth Mode (flag: `stealth: true`)
+    afforded_action: Route browser through residential proxy and solve CAPTCHAs automatically
+    discoverability: Discoverable
+    surface_accessibility: API, CLI, MCP
+    dependencies: Must be passed at browser creation; cannot toggle mid-session
+    automation_resistance: Low
+    notes: Enables bot-evasion strategies; only available in headful mode; reduces detectability and humanizes fingerprints
+
+  - category: Implicit
+    component: Live View URL
+    afforded_action: Observe and optionally control the browser session via browser-based VNC
+    discoverability: Discoverable
+    surface_accessibility: UI
+    dependencies: Browser must be in headful mode
+    automation_resistance: Low
+    notes: Enables human-in-the-loop debugging; `?readOnly=true` toggle available for audit-only
+
+  - category: Implicit
+    component: Auto Snapshotting (Standby Mode)
+    afforded_action: Pause inactive browser and restore later with full session context
+    discoverability: Requires Expertise
+    surface_accessibility: Internal (auto-managed)
+    dependencies: Persistence ID; no explicit API to pause/resume
+    automation_resistance: Low
+    notes: Used for cost-saving and state retention; invisible to user but critical for long-running workflows
+
+  - category: Latent
+    component: Rehydration-from-Invocation ID
+    afforded_action: Reconnect to previous browser session tied to a specific task
+    discoverability: Hidden
+    surface_accessibility: API
+    dependencies: `invocation_id` or `persistence_id`
+    automation_resistance: Medium
+    notes: Used for resuming a stalled session or debugging a specific action path; not officially emphasized
+
+  - category: Latent
+    component: Kernel as Browser Pool
+    afforded_action: Maintain rotating browser fleet for task sharding
+    discoverability: Requires Expertise
+    surface_accessibility: API, CLI
+    dependencies: Must handle your own session orchestration logic
+    automation_resistance: Low
+    notes: External orchestrators can implement horizontal scaling using Kernel as ephemeral browser-as-a-service
+
+  - category: Latent
+    component: Kernel as Serverless Function Host
+    afforded_action: Deploy lightweight APIs for AI agents to invoke (e.g., scraper endpoint)
+    discoverability: Requires Expertise
+    surface_accessibility: API
+    dependencies: Must deploy valid app and expose callable actions
+    automation_resistance: Low
+    notes: Works as a backend for inference-based tools or custom prompt pipelines
